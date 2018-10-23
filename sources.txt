@@ -1,0 +1,18 @@
+# Useful sources
+
+# Analysis of same data set in R
+# https://rpubs.com/kimnewzealand/311446
+
+# Intro to time series and forecasting
+# Airline passengers example
+https://arxiv.org/pdf/1302.6613.pdf
+
+
+# Box-Jenkins
+https://onlinelibrary.wiley.com/doi/pdf/10.1002/9781118619193
+
+
+
+
+# What to do?
+# Log transformation to remove mutliplicative trend? (multiplicative model)
