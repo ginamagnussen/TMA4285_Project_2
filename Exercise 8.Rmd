@@ -3,22 +3,25 @@ title: "TMA4285 Time series models"
 subtitle: "Exercise 8: Comparison of a state space model and a SARIMA model"
 author: "Sivert Selnes, Kristine L. Mathisen, Gina Magnussen"
 date: "20th of October 2018"
-output: pdf_document
+output: 
+  pdf_document:
+    fig_caption: yes
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, fig.cap="Plotting"}
 dataseries <- ts(read.table("dataEx8.txt"))
 plot.ts(dataseries)
 acf(dataseries)
 pacf(dataseries)
+```
 
+```{r, child='theory.Rmd'}
 
 ```
-$\rule[-.3\baselineskip]{0pt}{\baselineskip}$
 
 ##### Note how uncertainty should be written: 0.056(7)
 
