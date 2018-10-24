@@ -1,3 +1,26 @@
 ## Theory is written here (in theory.Rmd)
 ### * State-space models
+
+General:
+
+\[
+\begin{aligned}
+Y_t &= G_t\textbf{X}_t + W_t \hspace{14mm} \{\textbf{W}_t\} &\sim \text{WN}\left(\textbf{0},\{R_t\}\right) \\
+\mathbf{X}_{t+1} &= F_t\mathbf{X}_t + \mathbf{V}_{t} \hspace{15mm} \{\textbf{V}_t\} &\sim \text{WN}\left(\textbf{0},\{Q_t\}\right)
+\end{aligned}
+\]
+
+When F, G, R and Q are time independent:
+
+\[
+\begin{aligned}
+Y_t &= G\textbf{X}_t + W_t \hspace{14mm} \{W_t\} &\sim \text{WN}\left(\textbf{0},R\right) \\
+\mathbf{X}_{t+1} &= F\mathbf{X}_t + \mathbf{V_{t} \hspace{15mm} \{\mathbf{V}_t\} &\sim \text{WN}\left(\textbf{0},Q\right)
+\end{aligned}
+\]
+
 ### * SARIMA
+
+\[\text{SARIMA}(p,d,q)\times(P,D,Q)_s\]
+
+## 

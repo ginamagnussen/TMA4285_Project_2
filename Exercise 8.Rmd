@@ -19,7 +19,7 @@ library(astsa)
 
 #### Remember:
 
-* Note how uncertainty should be written: 0.056(7)
+* Note how uncertainty should be written: 0.056(7) (See sources on web page)
 
 # Structure
 ## Title
@@ -31,10 +31,11 @@ library(astsa)
 ```
 
 ---------------------------------------------------------
+
 ## Data analysis
 
 ## 1. Exploring the data with plotting of relevant statistics
-The data set consists of total number of international airline passengers for each month from January 1949 to December 1960, giving a total number of $N=144$ observations.
+The data set consists of total number of international airline passengers for each month from January 1949 to December 1960(reference to data set), giving a total number of $N=144$ observations.
 ```{r, echo = FALSE}
 dataseries <- ts(read.table("dataEx8.txt"))
 plot.ts(dataseries)
@@ -49,21 +50,23 @@ From the time series plot, this is obviously a non-stationary series as both tre
 To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
 Secondly, the data is differenced to remove trend. As there after differencing once still seems to be a pattern for a season equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied. The result is seen in Figure ?.
 
-```{r}
+```{r, echo = FALSE}
 log_series <- log(dataseries)
 diff_series <- diff(log_series)
 diff12_series <- diff(diff_series, 12)
 plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
 ```
-Consider now the ACF and th PACF of the last differenced series.
-```{r}
+The obtained series after applying the twelfth-order difference seems to be stationary, and models can then be applied. (Show that it is stationary?)
+
+
+
+Consider now the ACF and the PACF of the last differenced series.
+```{r, echo=FALSE}
 acf2(diff12_series, max.lag = 50)
 ```
 Both the ACF and the PACF seems to be tailing off after lags greater than one season, i.e. $1s$ where $s=12$.
 
-
-
-
+Next: Use ACF and PACF to justify choice of model parameters.
 
 
 
@@ -75,7 +78,9 @@ Both the ACF and the PACF seems to be tailing off after lags greater than one se
 <!-- Forecasting -->
 ## 5. Diagnostics, and model choice discussion including comparison of the two models
 
+
 -------------------------------------------
+
 
 ## Discussion
 ## Conclusion
