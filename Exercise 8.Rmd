@@ -4,33 +4,69 @@ subtitle: "Exercise 8: Comparison of a state space model and a SARIMA model"
 author: "Sivert Selnes, Kristine L. Mathisen, Gina Magnussen"
 date: "20th of October 2018"
 output: 
-  pdf_document:
-    fig_caption: yes
+  pdf_document
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo = FALSE, fig.cap="Plotting"}
-dataseries <- ts(read.table("dataEx8.txt"))
-plot.ts(dataseries)
-acf(dataseries)
-pacf(dataseries)
+```{r}
+# Libraries
+library(astsa)
 ```
 
+#### Remember:
+
+* Note how uncertainty should be written: 0.056(7)
+
+# Structure
+## Title
+## Abstract 
+## Introduction
+## Theory
 ```{r, child='theory.Rmd'}
 
 ```
 
-##### Note how uncertainty should be written: 0.056(7)
+---------------------------------------------------------
+## Data analysis
 
-# Tasks
 ## 1. Exploring the data with plotting of relevant statistics
-<!--
-Do differencing until stationary series (test this, e.g. qq plot) and then find other parameters as before?
-Then degree of differencing = d, s = 12 (seen by plot and situation) p,q by acf, pacf and estimation of parameters.
--->
+The data set consists of total number of international airline passengers for each month from January 1949 to December 1960, giving a total number of $N=144$ observations.
+```{r, echo = FALSE}
+dataseries <- ts(read.table("dataEx8.txt"))
+plot.ts(dataseries)
+par(mfrow=c(1,2))
+acf(dataseries, lag.max = 50)
+pacf(dataseries, lag.max = 50)
+```
+
+From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$.
+
+
+To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
+Secondly, the data is differenced to remove trend. As there after differencing once still seems to be a pattern for a season equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied. The result is seen in Figure ?.
+
+```{r}
+log_series <- log(dataseries)
+diff_series <- diff(log_series)
+diff12_series <- diff(diff_series, 12)
+plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
+```
+Consider now the ACF and th PACF of the last differenced series.
+```{r}
+acf2(diff12_series, max.lag = 50)
+```
+Both the ACF and the PACF seems to be tailing off after lags greater than one season, i.e. $1s$ where $s=12$.
+
+
+
+
+
+
+
 
 ## 2. Justification of the choice of model
 ## 3. Model parameter estimation including uncertainty 
@@ -39,15 +75,10 @@ Then degree of differencing = d, s = 12 (seen by plot and situation) p,q by acf,
 <!-- Forecasting -->
 ## 5. Diagnostics, and model choice discussion including comparison of the two models
 
-# Structure
-## Title
-## Abstract 
-## Introduction
-## Theory
-### * State-space models
-### * SARIMA
-## Data analysis
+-------------------------------------------
+
 ## Discussion
 ## Conclusion
 ## Appendix
 ## References
+
