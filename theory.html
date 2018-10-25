@@ -123,10 +123,18 @@ $(document).ready(function () {
 <h2>Theory is written here (in theory.Rmd)</h2>
 <div id="state-space-models" class="section level3">
 <h3>* State-space models</h3>
-<p>$Y_t = G<em>t + W_t \ </em>{t+1} = F<em>t + </em>{t} $</p>
+<p>General:</p>
+<p><span class="math display">\[
+\begin{aligned}
+Y_t &amp;= G_t\textbf{X}_t + W_t \hspace{14mm} \{\textbf{W}_t\} &amp;\sim \text{WN}\left(\textbf{0},\{R_t\}\right) \\
+\mathbf{X}_{t+1} &amp;= F_t\mathbf{X}_t + \mathbf{V}_{t} \hspace{15mm} \{\textbf{V}_t\} &amp;\sim \text{WN}\left(\textbf{0},\{Q_t\}\right)
+\end{aligned}
+\]</span></p>
+<p>When F, G, R and Q are time independent:</p>
 </div>
 <div id="sarima" class="section level3">
 <h3>* SARIMA</h3>
+<p><span class="math display">\[\text{SARIMA}(p,d,q)\times(P,D,Q)_s\]</span></p>
 </div>
 </div>
 <div id="section" class="section level2">
