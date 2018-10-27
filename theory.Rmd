@@ -21,7 +21,8 @@ Y_t &= G\textbf{X}_t + W_t \hspace{14mm} \{W_t\} &\sim
 \]
 
 ### * SARIMA
-
+(p,d,q) is ARIMA model _within_ each season.
+(P,D,Q) is the ARIMA model between each season and is the seasonal component of the SARIMA model. 
 \[\text{SARIMA}(p,d,q)\times(P,D,Q)_s\]
 
 ## 

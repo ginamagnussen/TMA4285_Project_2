@@ -9,10 +9,10 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE )
 ```
 
-```{r, echo=FALSE}
+```{r}
 # Libraries
 library(astsa)
 library(forecast)
@@ -36,63 +36,84 @@ library(forecast)
 
 ## Data analysis
 
+
 ## 1. Exploring the data with plotting of relevant statistics
-The data set consists of total number of international airline passengers for each month from January 1949 to December 1960(reference to data set), giving a total number of $N=144$ observations.
-```{r, echo = FALSE}
-dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
-par(mfrow=c(1,2))
-acf(dataseries, lag.max = 50)
-pacf(dataseries, lag.max = 50)
-```
-
-From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$.
-
-
-To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
-Secondly, the data is differenced to remove trend. As there after differencing once still seems to be a pattern for a season equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied. The result is seen in Figure ?.
-
-```{r, echo = FALSE}
-log_series <- log(dataseries)
-diff_series <- diff(log_series)
-diff12_series <- diff(diff_series, lag = 12)
-plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
-ggtsdisplay(diff12_series)
-```
-The obtained series after applying the twelfth-order difference seems to be stationary, and models can then be applied. (Show that it is stationary?)
-
-
-
-Consider now the ACF and the PACF of the last differenced series.
-```{r, echo=FALSE}
-acf2(diff12_series, max.lag = 50)
-```
-Both the ACF and the PACF seems to be tailing off after lags greater than one season, i.e. $1s$ where $s=12$.
-
-Next: Use ACF and PACF to justify choice of model parameters.
-
-
-
-
-
 ## 2. Justification of the choice of model
-### Trying to fit models:
-
-State-space model
-```{r, echo=FALSE}
-# ap <- log10(AirPassengers) - 2
-state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
-state_space_log <- StructTS(log_series, type ="BSM")
-par(mfrow = c(1, 2))
-plot(cbind(dataseries, fitted(state_space)), plot.type = "single") # From AirPassengers example
-plot(cbind(dataseries, tsSmooth(state_space)), plot.type = "single")
-plot(forecast(state_space_log, h = 50)) 
-```
-
 ## 3. Model parameter estimation including uncertainty 
 <!-- Simulation -->
 ## 4. Model prediction at the given sample points and for the next year including uncertainty of the best linear predictions
 <!-- Forecasting -->
 ## 5. Diagnostics, and model choice discussion including comparison of the two models
+
+## $SARIMA(p,d,q)\times(P,D,Q)_s$ model
+
+The data set consists of total number of international airline passengers, in thousands, for each month from January 1949 to December 1960(reference to data set), giving a total number of $N=144$ observations. 
+
+```{r}
+dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
+plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in thousands)")
+par(mfrow=c(1,2))
+acf(dataseries, lag.max = 50)
+pacf(dataseries, lag.max = 50)
+```
+
+From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$, and again a periodic wave-like pattern.
+
+
+To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
+
+```{r}
+log_series <- log(dataseries)
+diff_series <- diff(log_series)
+diff2_series <- diff(diff_series)
+diff12_series <- diff(diff_series, lag = 12)
+plot.ts(cbind(log_series, diff_series, diff2_series, diff12_series), main="Transformed and differenced data")
+ggtsdisplay(diff12_series)
+```
+
+?? Check if this is correct, especially $d=1 or 2$.
+Secondly, the data is differenced to remove trend. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. As there after differencing once still seems to be a pattern for a seasonol trend equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied. The parameter $D$ is related to this trend between seasons, i.e. the trend one can se from one January month to the next, the second and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons, which seems reasonable by looking at the time series plot itself.  
+
+Consider now the ACF and the PACF of the last differenced series.
+
+```{r, include=FALSE}
+acf2(diff12_series, max.lag = 50)
+```
+
+The obtained series after applying the twelfth-order difference seems to be stationary without any trend or seasonality. (Show stationarity?) We can then estimate the parameters.
+
+For the seasonal component, it looks like the ACF is cutting off at lag equal to one season, where $s = 12$, indicating $Q=1$. The PACF seems to be tailing off after lag equal the length of one season, indicating $P=0$. ?? Is the reasoning correct??
+
+In the non-seasonal component, both the ACF and the PACF seem to be tailing off at lower lags.
+FILL IN HERE / EXPLANATION for choosing $p, q$.
+$p=0$, $q=1$ are good parameters, I think.
+
+```{r, include=FALSE}
+fit <- sarima(log_series, 0,1,1,0,1,1,12)
+# fit$ttable
+```
+?? Bootstrapping for estimation of uncertainty is preferred, but SE is also given here ??. \\
+
+Forecasting SARIMA
+
+```{r, include = FALSE}
+plot.new()
+sarima.for(log_series, 12,0,1,1,0,1,1,12)
+title(main="One year forecast based on SARIMA model", xlab = "Time")
+```
+
+
+### State-space model
+
+```{r, echo=FALSE}
+# ap <- log10(AirPassengers) - 2
+state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
+state_space_log <- StructTS(log_series, type ="BSM")
+#par(mfrow = c(1, 2))
+#plot(cbind(dataseries, fitted(state_space)), plot.type = "single") # From AirPassengers example
+#plot(cbind(dataseries, tsSmooth(state_space)), plot.type = "single")
+plot(forecast(state_space_log, h = 50)) 
+```
 
 
 -------------------------------------------
