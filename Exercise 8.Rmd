@@ -9,14 +9,15 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE )
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 ```{r}
 # Libraries
 library(astsa)
 library(forecast)
-# libraries for state-space: dse, dlm, KFAS
+library(ggplot2)
+# libraries for state-space: dse, dlm, KFAS, stsm
 ```
 
 #### Remember:
@@ -45,9 +46,11 @@ library(forecast)
 <!-- Forecasting -->
 ## 5. Diagnostics, and model choice discussion including comparison of the two models
 
+
 ## $SARIMA(p,d,q)\times(P,D,Q)_s$ model
 
 The data set consists of total number of international airline passengers, in thousands, for each month from January 1949 to December 1960(reference to data set), giving a total number of $N=144$ observations. 
+
 
 ```{r}
 dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
@@ -55,10 +58,10 @@ plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in th
 par(mfrow=c(1,2))
 acf(dataseries, lag.max = 50)
 pacf(dataseries, lag.max = 50)
+boxplot(dataseries~cycle(dataseries), xlab="Date", ylab = "Passengers (in thousands)" ,main ="Monthly international air passengers") # Må ikke tas med, men viser litt av strukturen til dataene.
 ```
 
 From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$, and again a periodic wave-like pattern.
-
 
 To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
 
@@ -67,6 +70,7 @@ log_series <- log(dataseries)
 diff_series <- diff(log_series)
 diff2_series <- diff(diff_series)
 diff12_series <- diff(diff_series, lag = 12)
+#hist(diff12_series)
 plot.ts(cbind(log_series, diff_series, diff2_series, diff12_series), main="Transformed and differenced data")
 ggtsdisplay(diff12_series)
 ```
@@ -90,16 +94,21 @@ $p=0$, $q=1$ are good parameters, I think.
 
 ```{r, include=FALSE}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
-# fit$ttable
+fit$ttable # Gives parameter estimates and their standard deviation
 ```
 ?? Bootstrapping for estimation of uncertainty is preferred, but SE is also given here ??. \\
+?? How to do bootstrapping ?? \\
+?? Transform back ?? \\
+
+
 
 Forecasting SARIMA
 
 ```{r, include = FALSE}
 plot.new()
-sarima.for(log_series, 12,0,1,1,0,1,1,12)
+forecast_sarima <- sarima.for(log_series, 12,0,1,1,0,1,1,12)
 title(main="One year forecast based on SARIMA model", xlab = "Time")
+forecast_sarima$se
 ```
 
 
@@ -109,11 +118,43 @@ title(main="One year forecast based on SARIMA model", xlab = "Time")
 # ap <- log10(AirPassengers) - 2
 state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
 state_space_log <- StructTS(log_series, type ="BSM")
-#par(mfrow = c(1, 2))
-#plot(cbind(dataseries, fitted(state_space)), plot.type = "single") # From AirPassengers example
-#plot(cbind(dataseries, tsSmooth(state_space)), plot.type = "single")
-plot(forecast(state_space_log, h = 50)) 
+# state_space$model$T # F in state equation
+forecasts <- forecast(state_space_log, h = 50)
+#forecasts$lower 
+#forecasts$upper
+plot(forecasts) 
 ```
+
+```{r}
+model.build <- function(p) {
+  return(
+    dlmModPoly(2, dV=p[1], dW=p[2:3]) + 
+      dlmModSeas(12, dV=p[4])
+  )
+}
+ 
+#log.air <- log(air) + rnorm(length(log.air), 0, 0.15)
+log.air <- log_series
+train <- log.air[1:120]
+test <- log.air[121:144]
+ 
+model.mle <- dlmMLE(train, parm=c(1, 1, 1, 1), build=model.build)
+model.fit <- model.build(model.mle$par)
+## FF is G, GG is F?
+n <- 2*12
+model.forecast <- dlmForecast(model.filtered, nAhead=n)
+ 
+x <- index(log.air)
+a <- drop(model.forecast$a%*%t(FF(model.fit)))
+df <- rbind(
+  data.frame(x=index(log.air), y=as.numeric(log.air), series="original"),
+  data.frame(x=x[121:144], y=a, series="forecast")
+)
+
+g.dlm <- ggplot(df, aes(x=x, y=y, colour=series)) + geom_line()
+g.dlm
+```
+
 
 
 -------------------------------------------
