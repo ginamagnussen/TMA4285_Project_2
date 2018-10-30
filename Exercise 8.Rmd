@@ -17,6 +17,9 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(astsa)
 library(forecast)
 library(ggplot2)
+library(dlm)
+library(KFAS)
+library(zoo)
 # libraries for state-space: dse, dlm, KFAS, stsm
 ```
 
@@ -142,7 +145,7 @@ model.mle <- dlmMLE(train, parm=c(1, 1, 1, 1), build=model.build)
 model.fit <- model.build(model.mle$par)
 ## FF is G, GG is F?
 n <- 2*12
-model.forecast <- dlmForecast(model.filtered, nAhead=n)
+model.forecast <- dlmForecast(model.fit, nAhead=n)
  
 x <- index(log.air)
 a <- drop(model.forecast$a%*%t(FF(model.fit)))
@@ -153,6 +156,25 @@ df <- rbind(
 
 g.dlm <- ggplot(df, aes(x=x, y=y, colour=series)) + geom_line()
 g.dlm
+```
+
+
+## Siverts take on State Space Models
+
+Setting up the state space model as in example 9.5.2 in the textbook, we define $A$, $Q$ and $F$ as follows:
+```{r}
+
+init = rep(0,times=13*13)
+F = matrix(init,ncol = 13)
+F[1,1] = 1
+F[1,2] = 1
+F[2,2] = 1
+F[3,-(1:2)]= -1 # all elements on row 3 except col 1:2 set to -1
+F[4:13,3:12] = diag(10) # indentity matrix in lower right corner
+
+G = rep(1:0, times=13)
+
+
 ```
 
 
