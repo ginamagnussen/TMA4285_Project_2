@@ -58,65 +58,77 @@ The data set consists of total number of international airline passengers, in th
 
 ```{r}
 dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
+par(mfrow=c(2,2))
 plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in thousands)")
-par(mfrow=c(1,2))
+boxplot(dataseries~cycle(dataseries), xlab="Date", ylab = "Passengers (in thousands)" ,main ="Monthly international air passengers") # Må ikke tas med, men viser litt av strukturen til dataene.
 acf(dataseries, lag.max = 50)
 pacf(dataseries, lag.max = 50)
-boxplot(dataseries~cycle(dataseries), xlab="Date", ylab = "Passengers (in thousands)" ,main ="Monthly international air passengers") # Må ikke tas med, men viser litt av strukturen til dataene.
+
 ```
 
-From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$, and again a periodic wave-like pattern.
+From the time series plot, this is obviously a non-stationary series as both trend and seasonality is visible in the visualization. Trend is there because the total number of airline passengers on average increases for each month, and seasonality because of the wave-like behaviour of the series. Non-stationarity is further supported by looking at the autocorrelation function, which shows considerable correlation between observations even up to lag $h$ of size $30$, and again a periodic wave-like pattern. Furthermore, the box plot shows both higher mean number of passengers and also higher variance for months 6 to 9 in the year, i.e. June til September.
 
-To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation. This transformation seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
+To investigate the data, we first find a transformation to the time series. A normal transformation is the $\log()$-transformation, which seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
 
 ```{r}
 log_series <- log(dataseries)
 diff_series <- diff(log_series)
-diff2_series <- diff(diff_series)
 diff12_series <- diff(diff_series, lag = 12)
 #hist(diff12_series)
-plot.ts(cbind(log_series, diff_series, diff2_series, diff12_series), main="Transformed and differenced data")
-ggtsdisplay(diff12_series)
+plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
 ```
 
 ?? Check if this is correct, especially $d=1 or 2$.
-Secondly, the data is differenced to remove trend. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. As there after differencing once still seems to be a pattern for a seasonol trend equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied. The parameter $D$ is related to this trend between seasons, i.e. the trend one can se from one January month to the next, the second and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons, which seems reasonable by looking at the time series plot itself.  
+Secondly, the data is differenced to remove trend. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle in the figure for transformed and differenced data. As there after differencing once still seems to be a wavy pattern for a seasonol trend equal to the length of a year, i.e. $s = 12$ in a seasonal ARIMA model, a twelfth-order difference is applied (bottom plot in figure transformed and differenced data). The parameter $D$ is related to this trend between seasons, i.e. the trend one can se from one January month to the next, the second and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
+Our model parameter choices can be checked by comparing to the decomposed time series:
+```{r}
+autoplot(decompose(dataseries, "multiplicative"))
+```
+which clearly shows linear trend and a season equal to a year.
 Consider now the ACF and the PACF of the last differenced series.
 
-```{r, include=FALSE}
-acf2(diff12_series, max.lag = 50)
+
+```{r}
+ggtsdisplay(diff12_series)
 ```
+
 
 The obtained series after applying the twelfth-order difference seems to be stationary without any trend or seasonality. (Show stationarity?) We can then estimate the parameters.
 
-For the seasonal component, it looks like the ACF is cutting off at lag equal to one season, where $s = 12$, indicating $Q=1$. The PACF seems to be tailing off after lag equal the length of one season, indicating $P=0$. ?? Is the reasoning correct??
+For the seasonal component, it looks like the ACF is cutting off at lag equal to one season, where $s = 12$, indicating $Q=1$. The PACF seems to be tailing off after lag equal the length of one season, indicating $P=0$. 
+?? Ask about what is seen in the plots. Difference between tailing off and cutting off ??
 
 In the non-seasonal component, both the ACF and the PACF seem to be tailing off at lower lags.
-FILL IN HERE / EXPLANATION for choosing $p, q$.
+?? FILL IN HERE / EXPLANATION??  for choosing $p, q$.
 $p=0$, $q=1$ are good parameters, I think.
 
 ```{r, include=FALSE}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
 fit$ttable # Gives parameter estimates and their standard deviation
+fit3 <- arima(log_series, order=c(0,1,1), seasonal=list(order=c(0,1,1), period =12))
+simulate(fit3, nsim=13)
 ```
-?? Bootstrapping for estimation of uncertainty is preferred, but SE is also given here ??. \\
-?? How to do bootstrapping ?? \\
-?? Transform back ?? \\
+
+Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given in the table. 
 
 
-
-Forecasting SARIMA
+When we have found our model, we can do forecasting for the next twelve months. 
 
 ```{r, include = FALSE}
 plot.new()
-forecast_sarima <- sarima.for(log_series, 12,0,1,1,0,1,1,12)
+forecast_sarima <- sarima.for(log_series, 12,0,1,1,0,1,1, 12)
 title(main="One year forecast based on SARIMA model", xlab = "Time")
 forecast_sarima$se
 ```
 
+?? Need to forecast for given sample points. Only forecasting for the next year is done now ??
+
+The forecasting seems to continue the season and trend of the data well, and the standard deviation of each predicted value is lower $0.09$ for all months, which is low considered the relatively large y-values in the dataseries (monthtly passengers in thousands).
 
 ### State-space model
+
+We build a state-space model by ...
 
 ```{r, echo=FALSE}
 # ap <- log10(AirPassengers) - 2
@@ -126,8 +138,11 @@ state_space_log <- StructTS(log_series, type ="BSM")
 forecasts <- forecast(state_space_log, h = 50)
 #forecasts$lower 
 #forecasts$upper
-plot(forecasts) 
+plot(forecasts)
+#state_space$model$T # gives the F matrix
+#state_space$model$Z # gives the G matrix
 ```
+
 
 ```{r}
 model.build <- function(p) {
@@ -144,21 +159,25 @@ test <- log.air[121:144]
  
 model.mle <- dlmMLE(train, parm=c(1, 1, 1, 1), build=model.build)
 model.fit <- model.build(model.mle$par)
-## FF is G, GG is F?
+model.filtered <- dlmFilter(train, model.fit)
+model.smoothed <- dlmSmooth(train, model.fit)
+ 
 n <- 2*12
-model.forecast <- dlmForecast(model.fit, nAhead=n)
+model.forecast <- dlmForecast(model.filtered, nAhead=n)
  
 x <- index(log.air)
 a <- drop(model.forecast$a%*%t(FF(model.fit)))
 df <- rbind(
   data.frame(x=index(log.air), y=as.numeric(log.air), series="original"),
+  #data.frame(x=x[1:120], y=apply(model.filtered$m[-1,1:2], 1, sum), series="filtered"),
+  #data.frame(x=x[1:120], y=apply(model.smoothed$s[-1,1:2], 1, sum), series="smoothed"),
   data.frame(x=x[121:144], y=a, series="forecast")
 )
-
 g.dlm <- ggplot(df, aes(x=x, y=y, colour=series)) + geom_line()
 g.dlm
 ```
 
+?? Also need to forecast for given sample points here and find uncertainty. ??
 
 ## Bootstrap
 
@@ -172,18 +191,26 @@ model = dlmMLE(d, parm=c(1, 1, 1, 1), build=model)
 
 # bootstrapping with 100 replications 
 results <- boot(data=log_series, statistic=sample.parameters, 
-  	R=50, model=model.build)
+  	R=2, model=model.build)
+
 
 # view results
 results 
 plot(results)
 
 # get 95% confidence interval 
-boot.ci(results, type="bca")
+# everything is working for me up until this point (Gina)
+boot.ci(results, type="bca", index=1) # intercept
+boot.ci(results, type="bca", index=2) # wt
+boot.ci(results, type="bca", index=3) # disp 
 ```
 
-
-
+?? Missing: 
+* Uncertainty in parameter estimates, at least for state-space. They are given from $ttable for sarima. But still if we manage, bootstrap / simulation is preferred, I think. \\
+* Model diagnostics for state-space? I don't know. \\
+* Model comparison + discussion. \\
+* Theory \\
+??
 
 -------------------------------------------
 
