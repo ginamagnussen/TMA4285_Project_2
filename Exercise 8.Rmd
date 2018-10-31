@@ -20,6 +20,7 @@ library(ggplot2)
 library(dlm)
 library(KFAS)
 library(zoo)
+library(boot)
 # libraries for state-space: dse, dlm, KFAS, stsm
 ```
 
@@ -159,23 +160,28 @@ g.dlm
 ```
 
 
-## Siverts take on State Space Models
+## Bootstrap
 
-Setting up the state space model as in example 9.5.2 in the textbook, we define $A$, $Q$ and $F$ as follows:
-```{r}
+```{r,eval=F}
 
-init = rep(0,times=13*13)
-F = matrix(init,ncol = 13)
-F[1,1] = 1
-F[1,2] = 1
-F[2,2] = 1
-F[3,-(1:2)]= -1 # all elements on row 3 except col 1:2 set to -1
-F[4:13,3:12] = diag(10) # indentity matrix in lower right corner
+sample.parameters <- function(model, data, indices) {
+  d <- data[indices,] # allows boot to select sample 
+model = dlmMLE(d, parm=c(1, 1, 1, 1), build=model)
+  return(model$par)
+} 
 
-G = rep(1:0, times=13)
+# bootstrapping with 100 replications 
+results <- boot(data=log_series, statistic=sample.parameters, 
+  	R=50, model=model.build)
 
+# view results
+results 
+plot(results)
 
+# get 95% confidence interval 
+boot.ci(results, type="bca")
 ```
+
 
 
 
