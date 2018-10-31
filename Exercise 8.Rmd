@@ -110,7 +110,7 @@ fit3 <- arima(log_series, order=c(0,1,1), seasonal=list(order=c(0,1,1), period =
 simulate(fit3, nsim=13)
 ```
 
-Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given in the table. 
+Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given in the table. Our chosen model is thus $\text{SARIMA}(0,1,1)\times(0,1,1)_{12}$.
 
 
 When we have found our model, we can do forecasting for the next twelve months. 
