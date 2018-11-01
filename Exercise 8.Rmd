@@ -86,62 +86,45 @@ Our model parameter choices can be checked by comparing to the decomposed time s
 autoplot(decompose(dataseries, "multiplicative"))
 ```
 which clearly shows linear trend and a season equal to a year.
+Consider now the ACF and the PACF of the last differenced series.
+
 
 ```{r}
-
 ggtsdisplay(diff12_series)
-
 ```
 
 
-The obtained series after applying the twelfth-order difference seems to be stationary without any trend or seasonality. We can then try to estimate the remaining parameters by considering the ACF and the PACF. This would be done by looking at lags equal to $1s, 2s,...$, $s=12$ to determine $P$ and $Q$ in the seasonal component and by looking at smaller lags in each season to determine $p$ and $q$ in the non-seasonal component. However, we chose to look the AICC criterion and tested models with $d=1$, $D=1$, $s=12$, which is determined before, and $p,q,P,Q < 5$ which is based on looking at the ACF and PACF. In addition we prefer models with smaller parameters for simplicity if they are a good fit.
+The obtained series after applying the twelfth-order difference seems to be stationary without any trend or seasonality. (Show stationarity?) We can then estimate the parameters.
 
-```{r}
-bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, seasonal=TRUE, ic="aicc", trace=T)
-```
+For the seasonal component, it looks like the ACF is cutting off at lag equal to one season, where $s = 12$, indicating $Q=1$. The PACF seems to be tailing off after lag equal the length of one season, indicating $P=0$. 
+?? Ask about what is seen in the plots. Difference between tailing off and cutting off ??
 
+In the non-seasonal component, both the ACF and the PACF seem to be tailing off at lower lags.
+?? FILL IN HERE / EXPLANATION??  for choosing $p, q$.
+$p=0$, $q=1$ are good parameters, I think.
 
 ```{r, include=FALSE}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
 fit$ttable # Gives parameter estimates and their standard deviation
+fit3 <- arima(log_series, order=c(0,1,1), seasonal=list(order=c(0,1,1), period =12))
+simulate(fit3, nsim=13)
 ```
 
-Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. Our chosen model is thus $\text{SARIMA}(0,1,1)\times(0,1,1)_{12}$.
+Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given in the table. Our chosen model is thus $\text{SARIMA}(0,1,1)\times(0,1,1)_{12}$.
 
 
 When we have found our model, we can do forecasting for the next twelve months. 
 
 ```{r, include = FALSE}
-library(ggplot2)
-
-# Forevasting
-future <- 12
-sarima.forecast <- sarima.for(log_series, 24,0,1,1,0,1,1, 12) #sarima.forecast$se
-sarima.forecast
-forecast_sarima <- forecast(log_series, h = future); log_fitted <- forecast_sarima$fitted
-
-# Check model for given sample pointsS
-sarima_frame <- data.frame(dataseries, exp(log_fitted), log_series, log_fitted,  1:144)
-colnames(sarima_frame) <- c("original", "fitted", "log_original", "log_fitted", "month")
+plot.new()
+forecast_sarima <- sarima.for(log_series, 12,0,1,1,0,1,1, 12)
+title(main="One year forecast based on SARIMA model", xlab = "Time")
+forecast_sarima$se
 ```
 
+?? Need to forecast for given sample points. Only forecasting for the next year is done now ??
 
-```{r}
-ggplot(sarima_frame) + 
-  geom_line(aes(month, dataseries, color = "original")) + 
-  geom_line(aes(month,fitted , color="fitted")) + 
-  labs(title="Original and fitted values for SARIMA", xlab="Months", ylab="Passengers")
-
-```
-
-The fitted data looks good compared to the original data and the forecasting seems to continue the season and trend of the data well. Upper and lower bounds for both $80\%$ and $95\%$ confidence intervals are given from 
-
-```{r}
-forecast_sarima
-```
-
-
-
+The forecasting seems to continue the season and trend of the data well, and the standard deviation of each predicted value is lower $0.09$ for all months, which is low considered the relatively large y-values in the dataseries (monthtly passengers in thousands).
 
 ### State-space model
 
@@ -220,15 +203,23 @@ g.dlm
 We bootstrap the estimated parameters for the state space model. 
 ```{r}
 n=length(train)
-B=2
+B=10
 estimator=matrix(NA,nrow=4, ncol = B)
+# Bootstrap sample, store parameter vector
 for (b in 1:B)
   {
   boot=sample(x=log_series,size=n,replace=TRUE)
   model = dlmMLE(boot, parm=c(1, 1, 1, 1), build=model.build)
   estimator[,b] = model$par
 }
-sd(estimator)
+
+# Find variance of each parameter
+variance = rep(NA,4)
+for (p in 1:4){
+  variance[p] = var(estimator[p,])
+}
+
+
 ```
 
 * Model diagnostics for state-space? I don't know. \\
