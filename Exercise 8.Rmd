@@ -181,7 +181,7 @@ model.mle <- dlmMLE(train, parm=c(1, 1, 1, 1), build=model.build)
 model.fit <- model.build(model.mle$par)
 model.filtered <- dlmFilter(train, model.fit)
 model.smoothed <- dlmSmooth(train, model.fit)
- 
+
 n <- 2*12
 model.forecast <- dlmForecast(model.filtered, nAhead=n)
  
@@ -200,33 +200,20 @@ g.dlm
 ?? Also need to forecast for given sample points here and find uncertainty. ??
 
 ## Bootstrap
-
-```{r,eval=F}
-
-sample.parameters <- function(model, data, indices) {
-  d <- data[indices,] # allows boot to select sample 
-model = dlmMLE(d, parm=c(1, 1, 1, 1), build=model)
-  return(model$par)
-} 
-
-# bootstrapping with 100 replications 
-results <- boot(data=log_series, statistic=sample.parameters, 
-  	R=2, model=model.build)
-
-
-# view results
-results 
-plot(results)
-
-# get 95% confidence interval 
-# everything is working for me up until this point (Gina)
-boot.ci(results, type="bca", index=1) # intercept
-boot.ci(results, type="bca", index=2) # wt
-boot.ci(results, type="bca", index=3) # disp 
+We bootstrap the estimated parameters for the state space model. 
+```{r}
+n=length(train)
+B=2
+estimator=matrix(NA,nrow=4, ncol = B)
+for (b in 1:B)
+  {
+  boot=sample(x=log_series,size=n,replace=TRUE)
+  model = dlmMLE(boot, parm=c(1, 1, 1, 1), build=model.build)
+  estimator[,b] = model$par
+}
+sd(estimator)
 ```
 
-?? Missing: 
-* Uncertainty in parameter estimates, at least for state-space. They are given from $ttable for sarima. But still if we manage, bootstrap / simulation is preferred, I think. \\
 * Model diagnostics for state-space? I don't know. \\
 * Model comparison + discussion. \\
 * Theory \\
