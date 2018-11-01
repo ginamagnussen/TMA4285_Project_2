@@ -128,7 +128,7 @@ The forecasting seems to continue the season and trend of the data well, and the
 
 ### State-space model
 
-We build a state-space model by ...
+We build a state-space model by ??eqref to theory or just use Rfunctions??, which gives the following matrices
 
 ```{r, echo=FALSE}
 # ap <- log10(AirPassengers) - 2
@@ -141,6 +141,26 @@ forecasts <- forecast(state_space_log, h = 50)
 plot(forecasts)
 #state_space$model$T # gives the F matrix
 #state_space$model$Z # gives the G matrix
+```
+$F=$
+```{r}
+print(state_space$model$T)
+```
+$G=$
+```{r}
+print(state_space$model$Z)
+```
+
+$Q=$
+```{r}
+print(state_space$model$V)
+```
+This gives $(\hat\sigma_1^2, \hat\sigma_2^2, \hat\sigma^3_2) = (0.0000, 160.9755,  29.84652)$.
+
+
+
+```{r}
+print(state_space$model$a)
 ```
 
 
