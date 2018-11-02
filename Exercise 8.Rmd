@@ -110,23 +110,23 @@ n=length(log_series)
 B=10
 estimator=matrix(NA,nrow=2, ncol = B)
 # Bootstrap sample, store parameter vector
+
 for (b in 1:B)
   {
   boot=sample(x=log_series,size=n,replace=TRUE)
   model = sarima(boot, 0,1,1,0,1,1,12)
-  estimator[,b] = model$par
-  boot.sarima <- sarima(log_series, 0,1,1,0,1,1,12)
-  fit$ttable # Gives parameter estimates and their standard deviation
-
+  estimator[,b] = model$ttable[,1]
 }
 
 # Find mean and variance of each parameter
 mean = rowMeans(estimator) 
-variance = rep(NA,4)
-for (p in 1:4){
+variance = rep(NA,2)
+for (p in 1:2){
   variance[p] = var(estimator[p,])
 }
 
+mean
+variance
 ```
 
 Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. Our chosen model is thus $\text{SARIMA}(0,1,1)\times(0,1,1)_{12}$.
@@ -238,7 +238,7 @@ g.dlm
 ## Bootstrap
 We bootstrap the estimated parameters for the state space model. 
 ```{r}
-n=length(train)
+n=length(log_series)
 B=10
 estimator=matrix(NA,nrow=4, ncol = B)
 # Bootstrap sample, store parameter vector
