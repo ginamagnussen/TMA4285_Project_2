@@ -41,23 +41,11 @@ library(boot)
 ```{r, child='theory.Rmd'}
 ```
 
----------------------------------------------------------
 
 ## Data analysis
 
 
-## 1. Exploring the data with plotting of relevant statistics
-
-## 2. Justification of the choice of model
-
-## 3. Model parameter estimation including uncertainty 
-<!-- Simulation -->
-## 4. Model prediction at the given sample points and for the next year including uncertainty of the best linear predictions
-<!-- Forecasting -->
-## 5. Diagnostics, and model choice discussion including comparison of the two models
-
-
-## SARIMA$(p,d,q)\times(P,D,Q)_s$ model
+### SARIMA$(p,d,q)\times(P,D,Q)_s$ model
 
 The data set consists of total number of international airline passengers, in thousands, for each month from January 1949 to December 1960 (reference to data set), giving a total number of $N=144$ observations. 
 
@@ -260,13 +248,12 @@ g.dlm <- ggplot(df, aes(x=x, y=y, colour=series)) + geom_line()
 g.dlm
 ```
 
-?? Also need to forecast for given sample points here and find uncertainty. ??
 
-## Bootstrap
+### Bootstrap
 We bootstrap the estimated parameters for the state space model. 
 ```{r}
 n=length(log_series)
-B=10
+B=5
 estimator=matrix(NA,nrow=4, ncol = B)
 # Bootstrap sample, store parameter vector
 for (b in 1:B)
@@ -285,16 +272,18 @@ for (p in 1:4){
 
 ```
 
-* Model diagnostics for state-space? I don't know. \\
+* Model diagnostics for state-space \\
 * Model comparison + discussion. \\
-* Theory \\
-??
+
+## Discussion
+
+
+## Conclusion
+## Appendix
+## References
+---------------------------------------------------------
 
 -------------------------------------------
 
 
-## Discussion
-## Conclusion
-## Appendix
-## References
 
