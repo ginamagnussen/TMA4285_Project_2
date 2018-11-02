@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 ```
 
 ```{r}
@@ -33,8 +33,6 @@ library(boot)
 
 * Note how uncertainty should be written: 0.056(7) (See sources on web page)
 
-
-## Title
 ## Abstract 
 ## Introduction
 ## Theory
@@ -54,7 +52,8 @@ The data set consists of total number of international airline passengers, in th
 dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
 par(mfrow=c(2,2))
 plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in thousands)")
-boxplot(dataseries~cycle(dataseries), xlab="Date", ylab = "Passengers (in thousands)" ,main ="Monthly international air passengers") # Må ikke tas med, men viser litt av strukturen til dataene.
+boxplot(dataseries~cycle(dataseries), xlab="Date", ylab = "Passengers (in thousands)",
+        main ="Monthly international air passengers") 
 acf(dataseries, lag.max = 50)
 pacf(dataseries, lag.max = 50)
 ```
@@ -74,7 +73,7 @@ diff12_series <- diff(diff_series, lag = 12)
 plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
 ```
 
-Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then $(1-B^{12})$ is applied to th series. The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
+Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then $(1-B^{12})$ is applied to the series. The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
 Our model parameter choices can be checked by comparing to the decomposed time series:
 ```{r, echo=T}
@@ -86,15 +85,20 @@ which clearly shows linear trend and a season equal to a year.
 ggtsdisplay(diff12_series)
 ```
 
-The obtained series after applying the twelfth-order difference AGAIN: PROBABLY NOT RIGHT seems stationary without any trend or seasonality. We can then estimate the remaining parameters by considering the ACF and the PACF. This could be done by looking at lags equal to $1s, 2s,...$, $s=12$ to determine $P$ and $Q$ in the seasonal component and by looking at smaller lags in each season to determine $p$ and $q$ in the non-seasonal component.  In this case, however, we have used the AICC criterion and tested models with $d=1$, $D=1$, $s=12$, which is determined before, and $p,q,P,Q < 5$ which is based by looking at the ACF and PACF. In addition we prefer models with smaller parameters for simplicity if they are a good fit.
+The obtained series after differencing the second time seems stationary without any trend or seasonality. We can then estimate the remaining parameters by considering the ACF and the PACF. This could be done by looking at lags equal to $1s, 2s,...$, $s=12$ to determine $P$ and $Q$ in the seasonal component and by looking at smaller lags in each season to determine $p$ and $q$ in the non-seasonal component.  In this case, however, we have used the AICC criterion and tested models with $d=1$, $D=1$, $s=12$, which is determined before, and $p,q,P,Q < 5$ which is based by looking at the ACF and PACF. In addition we prefer models with smaller parameters for simplicity if they are a good fit.
+
+The \texttt{auto.arima()}-function tests a variety of models and chooses the best one given our chosen criteria:
 
 ```{r}
 bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, seasonal=TRUE, ic="aicc", trace=T)
 ```
 
+The chosen model with the lowest AICC sets $p=0, q=1, P=0$ and $Q=1$. Fitting this model gives the following result:
 
-```{r}
+
+```{r, include=FALSE}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
+fit$fit
 fit$ttable # Gives parameter estimates and their standard deviation
 
 # Bootstrap
@@ -120,6 +124,7 @@ for (p in 1:2){
 
 mean
 variance
+
 ```
 
 Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. Our chosen model is thus 
@@ -184,7 +189,7 @@ We build a state-space model by ??eqref to theory or just use Rfunctions??, whic
 state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
 state_space_log <- StructTS(log_series, type ="BSM")
 # state_space$model$T # F in state equation
-forecasts <- forecast(state_space_log, h = 50)
+forecasts <- forecast(state_space_log, h = 12)
 #forecasts$lower 
 #forecasts$upper
 plot(forecasts)
@@ -251,7 +256,7 @@ g.dlm
 
 ### Bootstrap
 We bootstrap the estimated parameters for the state space model. 
-```{r}
+```{r, include=FALSE}
 n=length(log_series)
 B=5
 estimator=matrix(NA,nrow=4, ncol = B)

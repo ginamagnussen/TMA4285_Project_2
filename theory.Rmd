@@ -1,4 +1,4 @@
-## Theory is written here (in theory.Rmd)
+
 ### * State-space models
 
 General:
