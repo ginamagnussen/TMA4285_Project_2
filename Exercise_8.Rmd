@@ -5,11 +5,11 @@ author: "Sivert Selnes, Kristine L. Mathisen, Gina Magnussen"
 date: "20th of October 2018"
 output: 
   pdf_document:
-    fig_caption: true
-    toc: true
+    #fig_caption: true
+    #toc: true
     
-header-includes:
-    - \usepackage{caption}
+#header-includes:
+#    - \usepackage{caption}
 
 ---
 
@@ -86,7 +86,7 @@ diff12_series <- diff(diff_series, lag = 12)
 plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
 ```
 
-Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then a twelfth-order difference is applied (bottom plot in figure transformed and differenced data). EDIT: THIS IS WRONG... The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
+Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then $(1-B^{12})$ is applied to th series. The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
 Our model parameter choices can be checked by comparing to the decomposed time series:
 ```{r}
@@ -146,18 +146,34 @@ which is equal to
 \phi(B)\Phi(B^{12})(1-B)(1-B^{12})X_t = \theta(B)\Theta(B^{12})Z_t
 \]
 
-When we have found our model, we can do forecasting for the next twelve months. 
+When we have found our model, we can do forecasting with the SARIMA model for the next twelve months. From the fitting functions in R, we can also extract credible intervals of the forecasts and the fitted values at our given sample points.
 
 ```{r, include = FALSE}
-library(ggplot2)
-# Forevasting
-future <- 12
-sarima.forecast <- sarima.for(log_series, 24,0,1,1,0,1,1, 12) #sarima.forecast$se
-sarima.forecast
-forecast_sarima <- forecast(log_series, h = future); log_fitted <- forecast_sarima$fitted
-# Check model for given sample pointsS
+
+# Forecasting
+future <- 12 # Set no. of months to forecast
+
+# Forecasting
+forecast_sarima <- forecast(log_series, h = future) # Forecastin
+log_fitted <- forecast_sarima$fitted # Fitted values for already given sample points
+
+# Check model for given sample points
 sarima_frame <- data.frame(dataseries, exp(log_fitted), log_series, log_fitted,  1:144)
 colnames(sarima_frame) <- c("original", "fitted", "log_original", "log_fitted", "month")
+```
+
+The following plot shows the time series and the forecased values for the next twelve months: 
+
+```{r}
+plot(forecast_sarima)
+```
+
+The credible intervals for the forecasts are
+
+```{r}
+uncertainty <- data.frame("95percent_lower" = exp(forecast_sarima$lower)[,2], "95percent_upper"=exp(forecast_sarima$upper)[,2])
+uncertainty
+
 ```
 
 
@@ -168,10 +184,7 @@ ggplot(sarima_frame) +
   labs(title="Original and fitted values for SARIMA", xlab="Months", ylab="Passengers")
 ```
 
-The fitted data looks good compared to the original data and the forecasting seems to continue the season and trend of the data well. Upper and lower bounds for both $80\%$ and $95\%$ confidence intervals are given from 
-```{r}
-forecast_sarima
-```
+The fitted data looks good compared to the original data and the forecasting seems to continue the season and trend of the data well. 
 
 
 
