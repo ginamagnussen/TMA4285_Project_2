@@ -81,7 +81,7 @@ diff12_series <- diff(diff_series, lag = 12)
 plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and differenced data")
 ```
 
-Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then a twelfth-order difference is applied (bottom plot in figure transformed and differenced data). EDIT: THIS IS WRONG... The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one January month to the second and the third and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
+Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then a twelfth-order difference is applied (bottom plot in figure transformed and differenced data). EDIT: THIS IS WRONG... The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
 Our model parameter choices can be checked by comparing to the decomposed time series:
 ```{r}
@@ -93,7 +93,7 @@ which clearly shows linear trend and a season equal to a year.
 ggtsdisplay(diff12_series)
 ```
 
-The obtained series after applying the twelfth-order difference seems to be stationary without any trend or seasonality. We can then try to estimate the remaining parameters by considering the ACF and the PACF. This would be done by looking at lags equal to $1s, 2s,...$, $s=12$ to determine $P$ and $Q$ in the seasonal component and by looking at smaller lags in each season to determine $p$ and $q$ in the non-seasonal component. However, we chose to look the AICC criterion and tested models with $d=1$, $D=1$, $s=12$, which is determined before, and $p,q,P,Q < 5$ which is based on looking at the ACF and PACF. In addition we prefer models with smaller parameters for simplicity if they are a good fit. The following models were tested:
+The obtained series after applying the twelfth-order difference AGAIN: PROBABLY NOT RIGHT seems stationary without any trend or seasonality. We can then estimate the remaining parameters by considering the ACF and the PACF. This could be done by looking at lags equal to $1s, 2s,...$, $s=12$ to determine $P$ and $Q$ in the seasonal component and by looking at smaller lags in each season to determine $p$ and $q$ in the non-seasonal component.  In this case, however, we have used the AICC criterion and tested models with $d=1$, $D=1$, $s=12$, which is determined before, and $p,q,P,Q < 5$ which is based by looking at the ACF and PACF. In addition we prefer models with smaller parameters for simplicity if they are a good fit.
 
 ```{r}
 bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, seasonal=TRUE, ic="aicc", trace=T)
@@ -103,6 +103,30 @@ bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, s
 ```{r, include=FALSE}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
 fit$ttable # Gives parameter estimates and their standard deviation
+
+# Bootstrap
+
+n=length(log_series)
+B=10
+estimator=matrix(NA,nrow=2, ncol = B)
+# Bootstrap sample, store parameter vector
+for (b in 1:B)
+  {
+  boot=sample(x=log_series,size=n,replace=TRUE)
+  model = sarima(boot, 0,1,1,0,1,1,12)
+  estimator[,b] = model$par
+  boot.sarima <- sarima(log_series, 0,1,1,0,1,1,12)
+  fit$ttable # Gives parameter estimates and their standard deviation
+
+}
+
+# Find mean and variance of each parameter
+mean = rowMeans(estimator) 
+variance = rep(NA,4)
+for (p in 1:4){
+  variance[p] = var(estimator[p,])
+}
+
 ```
 
 Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. Our chosen model is thus $\text{SARIMA}(0,1,1)\times(0,1,1)_{12}$.
@@ -120,6 +144,8 @@ forecast_sarima <- forecast(log_series, h = future); log_fitted <- forecast_sari
 sarima_frame <- data.frame(dataseries, exp(log_fitted), log_series, log_fitted,  1:144)
 colnames(sarima_frame) <- c("original", "fitted", "log_original", "log_fitted", "month")
 ```
+
+
 ```{r}
 ggplot(sarima_frame) + 
   geom_line(aes(month, dataseries, color = "original")) + 
@@ -127,8 +153,7 @@ ggplot(sarima_frame) +
   labs(title="Original and fitted values for SARIMA", xlab="Months", ylab="Passengers")
 ```
 
-The fitted data looks good compared to the original data and the forecasting seems to continue the season and trend of the data well. Upper and lower bounds for both $80\%$ and $95\%$ confidence intervals are given from
-
+The fitted data looks good compared to the original data and the forecasting seems to continue the season and trend of the data well. Upper and lower bounds for both $80\%$ and $95\%$ confidence intervals are given from 
 ```{r}
 forecast_sarima
 ```
