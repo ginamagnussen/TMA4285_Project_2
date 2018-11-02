@@ -23,7 +23,13 @@ Y_t &= G\textbf{X}_t + W_t \hspace{14mm} \{W_t\} &\sim
 ### * SARIMA
 
 A SARIMA model is an extended version of the ARIMA model which can also consider a seasonal component in a time series. 
-Its general form $SARIMA(p,d,q)\times(P,D,Q)_{s}$ is a seasonal ARIMA process with period $s$ and is written as  
+Its general form 
+
+\[
+SARIMA(p,d,q)\times(P,D,Q)_{s}
+\]
+
+is a seasonal ARIMA process with period $s$ and is written as  
 
 \[
 \phi(B)\Phi\left(B^S\right)Y_t = \theta(B)\Theta\left(B^S\right)Z_t, \hspace{7mm}   \{Z_t\}\sim \text{WN}(0,\sigma^2)
@@ -38,6 +44,5 @@ The SARIMA model has two parts: A seasonal component and a non-seasonal componen
 $(P,D,Q)$ is the ARIMA model between each season and is the seasonal component of the SARIMA model. This part models behaviour for for instance the January months in a time series with monthly observations and where the season is a year long. $(p,d,q)$ is the non-seasonal part of the model and is an ARIMA model _within_ each season.
 The interpretation of $p,d,q,P,d$ and $Q$ are known from previous knowledge on the ARIMA models, and $B$ is the backshift operator as before.
 
-\[\text{SARIMA}(p,d,q)\times(P,D,Q)_s\]
 
 ## 
