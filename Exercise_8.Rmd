@@ -62,7 +62,7 @@ library(boot)
 The data set consists of total number of international airline passengers, in thousands, for each month from January 1949 to December 1960 (reference to data set), giving a total number of $N=144$ observations. 
 
 
-```{r, include=TRUE}
+```{r, echo=T,include=TRUE}
 dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
 par(mfrow=c(2,2))
 plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in thousands)")
@@ -75,7 +75,7 @@ From the time series plot, this is obviously a non-stationary series as both tre
 
 To investigate the data, we first find a transformation to the time series. A typical transformation for making the series more stationary is the $\log()$-transformation. This seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
 
-```{r}
+```{r,echo=T}
 # Log-transform the data
 log_series <- log(dataseries)
 # Differencing the data
@@ -89,12 +89,12 @@ plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and dif
 Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then $(1-B^{12})$ is applied to th series. The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
 Our model parameter choices can be checked by comparing to the decomposed time series:
-```{r}
+```{r, echo=T}
 autoplot(decompose(dataseries, "multiplicative"))
 ```
 which clearly shows linear trend and a season equal to a year.
 
-```{r}
+```{r, echo=T}
 ggtsdisplay(diff12_series)
 ```
 
@@ -105,7 +105,7 @@ bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, s
 ```
 
 
-```{r, include=FALSE}
+```{r}
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
 fit$ttable # Gives parameter estimates and their standard deviation
 
@@ -148,11 +148,10 @@ which is equal to
 
 When we have found our model, we can do forecasting with the SARIMA model for the next twelve months. From the fitting functions in R, we can also extract credible intervals of the forecasts and the fitted values at our given sample points.
 
-```{r, include = FALSE}
+```{r}
 
 # Forecasting
 future <- 12 # Set no. of months to forecast
-
 # Forecasting
 forecast_sarima <- forecast(log_series, h = future) # Forecastin
 log_fitted <- forecast_sarima$fitted # Fitted values for already given sample points
@@ -188,13 +187,11 @@ The fitted data looks good compared to the original data and the forecasting see
 
 
 
-
-
 ### State-space model
 
 We build a state-space model by ??eqref to theory or just use Rfunctions??, which gives the following matrices
 
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 # ap <- log10(AirPassengers) - 2
 state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
 state_space_log <- StructTS(log_series, type ="BSM")
@@ -229,6 +226,8 @@ print(state_space$model$a)
 
 
 ```{r}
+# State space with DLM method
+
 model.build <- function(p) {
   return(
     dlmModPoly(2, dV=p[1], dW=p[2:3]) + 
