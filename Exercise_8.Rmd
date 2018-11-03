@@ -34,7 +34,12 @@ library(boot)
 * Note how uncertainty should be written: 0.056(7) (See sources on web page)
 
 ## Abstract 
+In this exercise, we analyse a time series which contain the number of international airline passengers every month for 12 years. The series is first explored with SARIMA, and then explored using state-space models. Finally, the two models are compared. 
+
 ## Introduction
+The analysis on time series can be used for multiple purposes. In this exercise it will be used to present the data in a way that is easy to interpret. In addition, we use it to do forecasting. The modeling includes a seasonal component that repeats every $s$ observation (every 12th in our data set). This makes the model more precise for time series which has seasonal trends and periodic variations. 
+
+
 ## Theory
 ```{r, child='theory.Rmd'}
 ```
