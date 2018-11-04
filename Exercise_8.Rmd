@@ -3,8 +3,13 @@ title: "TMA4285 Time series models"
 subtitle: 'Exercise 8: Comparison of a state space model and a SARIMA model'
 author: "Sivert Selnes, Kristine L. Mathisen, Gina Magnussen"
 date: "4th of November 2018"
-output:
-  pdf_document: 
+output: 
+  pdf_document:
+    #fig_caption: true
+    #toc: true
+    
+#header-includes:
+#    - \usepackage{caption}
 
 ---
 
@@ -292,7 +297,7 @@ variance
 
 
 ## Discussion
-As we are not able to create both models, we are neither able to test both of them. This makes it hard to compare the models. The SARIMA-model is tested, but not the state-space model. We are neither able to do bootstrapping/simulation completely to estimate parameters and their uncertainty. Our attempt is presented in the appendix. 
+We have not been able to complete this exercise. As we are not able to create both models, we are neither able to test both of them. This makes it hard to compare the models. The SARIMA-model is tested, but not the state-space model. We are neither able to do bootstrapping/simulation completely to estimate parameters and their uncertainty. Our attempt is presented in the appendix. 
 
 ## Conclusion
 As a result of the discussion and what we have been able to create, we prefer the SARIMA model. 
