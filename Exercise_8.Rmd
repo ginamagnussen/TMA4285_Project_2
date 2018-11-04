@@ -14,7 +14,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
 ```{r}
@@ -53,7 +53,7 @@ The analysis on time series can be used for multiple purposes. In this exercise 
 The data set consists of total number of international airline passengers, in thousands, for each month from January 1949 to December 1960 (reference to data set), giving a total number of $N=144$ observations. 
 
 
-```{r, echo=T,include=TRUE}
+```{r}
 dataseries <- ts(read.table("dataEx8.txt"), frequency = 12)
 par(mfrow=c(2,2))
 plot(dataseries,main = "Airline passengers (1949-1960)", ylab="Passengers (in thousands)")
@@ -67,7 +67,7 @@ From the time series plot, this is obviously a non-stationary series as both tre
 
 To investigate the data, we first find a transformation to the time series. A typical transformation for making the series more stationary is the $\log()$-transformation. This seems to stabilize the multiplicative behaviour of the variance so that the variance is not increasing with time.
 
-```{r,echo=T}
+```{r}
 # Log-transform the data
 log_series <- log(dataseries)
 # Differencing the data
@@ -81,12 +81,12 @@ plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and dif
 Secondly, the data is differenced to remove trend, i.e. stabilizing the mean. The parameter $d$ is related to trend within a season, and since this trend seems to be removed by differencing once, we try $d = 1$. See the plot in the middle of the figure for transformed and differenced data. After differencing there still is a wave pattern present, one for each year. This indicates a seasonal trend equal to the length of a year, i.e. we suspect a $s = 12$ in a seasonal ARIMA model. Then $(1-B^{12})$ is applied to the series. The parameter $D$ is related to the trend between seasons, i.e. the trend one can se from one time of the year to the next, and the next, and so on. We therefore set $D = 1$. Differencing once indicates linear trend, both within and between the seasons. 
 
 Our model parameter choices can be checked by comparing to the decomposed time series:
-```{r, echo=T}
+```{r}
 autoplot(decompose(dataseries, "multiplicative"))
 ```
 which clearly shows linear trend and a season equal to a year.
 
-```{r, echo=T}
+```{r}
 ggtsdisplay(diff12_series)
 ```
 
@@ -127,12 +127,20 @@ for (p in 1:2){
   variance[p] = var(estimator[p,])
 }
 
-mean
-variance
 
 ```
 
-Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. Our chosen model is thus 
+
+Both parameters are significant in the model, and the residual analysis plot shows that our model is a good fit. In addition, the uncertainty of the parameters are given from $\texttt{fit\$ttable}$. 
+However, when trying to bootstrap the to estimate the uncertainty of the parameters, we don't get the same results. The first line are supposed to be the parameter estimates, and the second line the standard errors.
+
+```{r}
+mean
+sqrt(variance)
+```
+
+
+We nevertheless choose our model to be 
 
 \[
 \text{SARIMA}(0,1,1)\times(0,1,1)_{12} 
@@ -189,7 +197,7 @@ The fitted data looks good compared to the original data and the forecasting see
 
 We build a state-space model, which gives the following matrices
 
-```{r, echo=TRUE}
+```{r}
 # ap <- log10(AirPassengers) - 2
 state_space <- StructTS(dataseries, type = "BSM") # Basic structural model
 state_space_log <- StructTS(log_series, type ="BSM")
@@ -260,10 +268,11 @@ g.dlm
 
 
 ### Bootstrap
-We bootstrap the estimated parameters for the state space model. 
+We bootstrap to estimate the and find the uncertainty of the parameters for the state space model.
+
 ```{r, include=FALSE}
 n=length(log_series)
-B=5
+B=10
 estimator=matrix(NA,nrow=4, ncol = B)
 # Bootstrap sample, store parameter vector
 for (b in 1:B)
@@ -282,15 +291,23 @@ for (p in 1:4){
 
 ```
 
-* Model diagnostics for state-space \\
-* Model comparison + discussion. \\
+The estimated parameters and their uncertainties are respectively
+
+```{r}
+mean 
+variance
+```
+
+?? Ser ikke helt at dette heller stemmer overens med det vi får fra modellen... ?? 
 
 ## Discussion
--It is hard to esimate 
--We have tried to do bootstrapping for SARIMA, but we did not get the results we wanted.
--We prefer SARIMA?
+- Får til å sette opp begge modeller, men vi har kun fått testet om SARIMA-modellen er god, ikke for state-space.
+- Får ikke helt til bootstrapping/simulering for å estimere parametre og deres usikkerhet for modellene, men vi har gjort et forsøk. Se appendix.
+- State-space variablene stemmer heller ikke overens med de resultatene som står i læreboka, så det er vanskelig å avgjøre om modellen er god? (Hva tenkes om dette punktet?)
 
 ## Conclusion
+- Som følge av punktene ovenfor foretrekker vi SARIMA-modellen. 
+
 ## Appendix
 ## Reference
 Brockwell, Peter J., Davis, Richard A. 2002. $\textit{Introduction to time series and forecasting}$. 2nd ed. New York: Springer Science
