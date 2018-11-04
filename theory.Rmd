@@ -1,8 +1,8 @@
 
 ### * State-space models
+A state space model consists of two equations. The first equation is the observation equation, which expresses $Y_t$ as a linear function of a $v$-dimensional state variable $X_t$ and a noise term. The second one is the state equation, which shows $X_{t+1}$ at time $t+1$ as a function of the previous state $X_t$ plus noise.
 
-General:
-
+These two equations can be written as:
 \[
 \begin{aligned}
 Y_t &= G_t\textbf{X}_t + W_t \hspace{14mm} \{\textbf{W}_t\} &\sim \text{WN}\left(\textbf{0},\{R_t\}\right) \\
@@ -10,7 +10,7 @@ Y_t &= G_t\textbf{X}_t + W_t \hspace{14mm} \{\textbf{W}_t\} &\sim \text{WN}\left
 \end{aligned}
 \]
 
-When F, G, R and Q are time independent:
+When F, G, R and Q are time independent, the equations are:
 
 \[
 \begin{aligned}

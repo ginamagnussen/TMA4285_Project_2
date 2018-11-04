@@ -187,7 +187,7 @@ The fitted data looks good compared to the original data and the forecasting see
 
 ### State-space model
 
-We build a state-space model by ??eqref to theory or just use Rfunctions??, which gives the following matrices
+We build a state-space model, which gives the following matrices
 
 ```{r, echo=TRUE}
 # ap <- log10(AirPassengers) - 2
@@ -286,11 +286,14 @@ for (p in 1:4){
 * Model comparison + discussion. \\
 
 ## Discussion
-
+-It is hard to esimate 
+-We have tried to do bootstrapping for SARIMA, but we did not get the results we wanted.
+-We prefer SARIMA?
 
 ## Conclusion
 ## Appendix
-## References
+## Reference
+Brockwell, Peter J., Davis, Richard A. 2002. $\textit{Introduction to time series and forecasting}$. 2nd ed. New York: Springer Science
 ---------------------------------------------------------
 
 -------------------------------------------
