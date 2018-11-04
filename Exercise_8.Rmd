@@ -1,11 +1,11 @@
 ---
 title: "TMA4285 Time series models"
+subtitle: 'Exercise 8: Comparison of a state space model and a SARIMA model'
 author: "Sivert Selnes, Kristine L. Mathisen, Gina Magnussen"
 date: "4th of November 2018"
 output:
-  pdf_document: null
-  word_document: default
-subtitle: 'Exercise 8: Comparison of a state space model and a SARIMA model'
+  pdf_document: 
+
 ---
 
 ```{r setup, include=FALSE}
