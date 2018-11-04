@@ -26,13 +26,10 @@ library(dlm)
 library(KFAS)
 library(zoo)
 library(boot)
-library(dse)
-library(stsm)
+#library(dse)
+#library(stsm)
 ```
 
-#### Remember:
-
-* Note how uncertainty should be written: 0.056(7) (See sources on web page)
 
 ## Abstract 
 In this exercise, we analyse a time series which contain the number of international airline passengers every month for 12 years. The series is first explored with SARIMA, and then explored using state-space models. Finally, the two models are compared. 
@@ -152,7 +149,6 @@ which is equal to
 When we have found our model, we can do forecasting with the SARIMA model for the next twelve months. From the fitting functions in R, we can also extract credible intervals of the forecasts and the fitted values at our given sample points.
 
 ```{r}
-
 # Forecasting
 future <- 12 # Set no. of months to forecast
 # Forecasting
@@ -303,7 +299,7 @@ We have not been able to complete this exercise. As we are not able to create bo
 As a result of the discussion and what we have been able to create, we prefer the SARIMA model. 
 
 ## Appendix
-```{r, eval=FALSE}
+```{r, eval=FALSE, echo=TRUE}
 # TMA4285 Time series models, autumn 2018
 # Libraries
 library(astsa)
@@ -335,7 +331,8 @@ plot.ts(cbind(log_series, diff_series, diff12_series), main="Transformed and dif
 
 ggtsdisplay(diff12_series)
 
-bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5, seasonal=TRUE, ic="aicc", trace=T)
+bestfit <- auto.arima(log_series, d=1, D=1, max.p=5,max.q=5, max.P=5, max.Q=5,
+                      seasonal=TRUE, ic="aicc", trace=T)
 
 fit <- sarima(log_series, 0,1,1,0,1,1,12)
 fit$fit
@@ -378,7 +375,8 @@ colnames(sarima_frame) <- c("original", "fitted", "log_original", "log_fitted", 
 
 plot(forecast_sarima)
 
-uncertainty <- data.frame("95percent_lower" = exp(forecast_sarima$lower)[,2], "95percent_upper"=exp(forecast_sarima$upper)[,2])
+uncertainty <- data.frame("95percent_lower" = exp(forecast_sarima$lower)[,2],
+                          "95percent_upper"=exp(forecast_sarima$upper)[,2])
 uncertainty
 
 ggplot(sarima_frame) + 
@@ -411,7 +409,7 @@ model.build <- function(p) {
   )
 }
  
-#log.air <- log(air) + rnorm(length(log.air), 0, 0.15)
+
 log.air <- log_series
 train <- log.air[1:120]
 test <- log.air[121:144]
@@ -428,8 +426,6 @@ x <- index(log.air)
 a <- drop(model.forecast$a%*%t(FF(model.fit)))
 df <- rbind(
   data.frame(x=index(log.air), y=as.numeric(log.air), series="original"),
-  #data.frame(x=x[1:120], y=apply(model.filtered$m[-1,1:2], 1, sum), series="filtered"),
-  #data.frame(x=x[1:120], y=apply(model.smoothed$s[-1,1:2], 1, sum), series="smoothed"),
   data.frame(x=x[121:144], y=a, series="forecast")
 )
 g.dlm <- ggplot(df, aes(x=x, y=y, colour=series)) + geom_line()
@@ -456,11 +452,12 @@ for (p in 1:4){
 mean 
 variance
 ```
+
+
 ## Reference
 Brockwell, Peter J., Davis, Richard A. 2002. $\textit{Introduction to time series and forecasting}$. 2nd ed. New York: Springer Science
----------------------------------------------------------
 
--------------------------------------------
+
 
 
 
